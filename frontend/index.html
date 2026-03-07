@@ -177,7 +177,8 @@ body{
   border:1px solid var(--border);background:hsla(220,22%,16%,.50);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.06em;
-  transition:border-color .2s,color .2s;
+  color:var(--muted);
+  transition:border-color .3s,color .3s,background .3s;
 }
 [data-theme="light"] .topbar-badge{background:hsla(220,28%,96%,.45)}
 .topbar-badge.all-on  {border-color:hsla(145,65%,52%,.4);color:var(--green)}
@@ -185,6 +186,25 @@ body{
 .topbar-badge.all-off {border-color:hsla(0,72%,60%,.3);  color:var(--danger)}
 .tb-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
 .all-on .tb-dot{animation:pulse-green 2s ease-in-out infinite}
+
+/* API status pill — sits left of the DB badge */
+.api-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:99px;
+  border:1px solid var(--border);background:hsla(220,22%,16%,.50);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.05em;
+  transition:border-color .3s,color .3s,background .3s;
+}
+[data-theme="light"] .api-badge{background:hsla(220,28%,96%,.45)}
+.api-badge.up  {border-color:hsla(145,65%,52%,.4);color:var(--green)}
+.api-badge.down{border-color:hsla(0,72%,60%,.3);  color:var(--danger)}
+.api-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.api-badge.up .api-dot{animation:pulse-green 2s ease-in-out infinite}
+.api-port{
+  opacity:.55;font-size:.58rem;
+  border-left:1px solid currentColor;padding-left:6px;margin-left:2px;
+}
 
 .theme-toggle{
   width:40px;height:40px;border-radius:50%;
@@ -220,6 +240,12 @@ body{
   font-family:'JetBrains Mono',monospace;
   font-size:.72rem;color:var(--muted);letter-spacing:.1em;
   animation:fadeup .55s .16s ease both;
+}
+/* pills row — sits above the hero title */
+.hero-pills{
+  display:flex;align-items:center;gap:8px;
+  flex-wrap:wrap;justify-content:center;
+  animation:fadeup .45s .04s ease both;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -602,7 +628,6 @@ body{
 @media(max-width:600px){
   .cards-grid{grid-template-columns:1fr;padding:14px}
   .hero-title{font-size:2rem}
-  .topbar-badge{display:none}
 }
 </style>
 </head>
@@ -629,10 +654,6 @@ body{
       4_DB-Lab
     </div>
     <div class="topbar-meta">
-      <div class="topbar-badge" id="global-badge">
-        <span class="tb-dot"></span>
-        <span id="global-badge-txt">Connecting…</span>
-      </div>
       <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     </div>
   </div>
@@ -640,6 +661,17 @@ body{
 
 <!-- ════ HERO ══════════════════════════════════════ -->
 <section class="hero">
+  <div class="hero-pills">
+    <div class="api-badge" id="api-badge">
+      <span class="api-dot"></span>
+      <span id="api-badge-txt">Node.js Connecting…</span>
+      <span class="api-port">:7010</span>
+    </div>
+    <div class="topbar-badge" id="global-badge">
+      <span class="tb-dot"></span>
+      <span id="global-badge-txt">Connecting…</span>
+    </div>
+  </div>
   <h1 class="hero-title">4_DB-Lab | Node.js</h1>
   <p class="hero-sub">MySQL · MongoDB · PostgreSQL · Redis</p>
 </section>
@@ -903,9 +935,14 @@ function scrollCardDown(db) {
 //  STATUS POLL
 // ═══════════════════════════════════════════════════
 async function pollStatus() {
+  const apiBadge  = document.getElementById('api-badge');
+  const apiBadgeTxt = document.getElementById('api-badge-txt');
   try {
     const res = await fetch('/api/status');
-    if (!res.headers.get('content-type')?.includes('application/json')) return;
+    if (!res.headers.get('content-type')?.includes('application/json')) {
+      setApiBadge(false); return;
+    }
+    setApiBadge(true);
     const data = await res.json();
     let online = 0;
     DBS.forEach(db => {
@@ -918,8 +955,16 @@ async function pollStatus() {
     txt.textContent = online === 4 ? '4/4 Online' : online === 0 ? 'All Offline' : `${online}/4 Online`;
     document.getElementById('last-poll').textContent = `Last check: ${ts()}`;
   } catch (e) {
+    setApiBadge(false);
     console.warn('Poll error:', e.message);
   }
+}
+
+function setApiBadge(up) {
+  const badge = document.getElementById('api-badge');
+  const txt   = document.getElementById('api-badge-txt');
+  badge.className = `api-badge ${up ? 'up' : 'down'}`;
+  txt.textContent = up ? 'Node.js Connected' : 'Node.js Failed';
 }
 
 function applyStatus(db, connected) {

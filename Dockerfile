@@ -28,10 +28,10 @@ COPY backend/ ./
 RUN addgroup -S 4dblab && adduser -S 4dblab -G 4dblab
 USER 4dblab
 
-EXPOSE 3000
+EXPOSE 7010
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/status || exit 1
+  CMD wget -qO- http://localhost:7010/api/status || exit 1
 
 CMD ["node", "server.js"]
 

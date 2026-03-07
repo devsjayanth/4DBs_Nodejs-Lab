@@ -7,7 +7,7 @@ const { createClient } = require('redis');
 const mongoose         = require('mongoose');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 7010;
 
 // ══════════════════════════════════════════════════════════
 //  CONFIG  — all values come from docker-compose environment
@@ -16,9 +16,9 @@ const CFG = {
   mysql: {
     host:               process.env.MYSQL_HOST     || 'mysql',
     port:               Number(process.env.MYSQL_PORT) || 3306,
-    user:               process.env.MYSQL_USER     || 'userapp',
-    password:           process.env.MYSQL_PASSWORD || 'userapp_pass',
-    database:           process.env.MYSQL_DATABASE || 'userapp',
+    user:               process.env.MYSQL_USER     || 'user',
+    password:           process.env.MYSQL_PASSWORD || 'password',
+    database:           process.env.MYSQL_DATABASE || 'appdb',
     waitForConnections: true,
     connectionLimit:    5,
     connectTimeout:     5000,
@@ -26,9 +26,9 @@ const CFG = {
   postgres: {
     host:                    process.env.PG_HOST     || 'postgres',
     port:                    Number(process.env.PG_PORT) || 5432,
-    user:                    process.env.PG_USER     || 'userapp',
-    password:                process.env.PG_PASSWORD || 'userapp_pass',
-    database:                process.env.PG_DATABASE || 'userapp',
+    user:                    process.env.PG_USER     || 'user',
+    password:                process.env.PG_PASSWORD || 'password',
+    database:                process.env.PG_DATABASE || 'appdb',
     max:                     5,
     connectionTimeoutMillis: 5000,
     idleTimeoutMillis:       30000,
@@ -39,11 +39,11 @@ const CFG = {
       port:           Number(process.env.REDIS_PORT) || 6379,
       connectTimeout: 5000,
     },
-    password: process.env.REDIS_PASSWORD || 'userapp_pass',
+    password: process.env.REDIS_PASSWORD || 'password',
   },
   mongo: {
     uri: process.env.MONGO_URI ||
-      'mongodb://userapp:userapp_pass@mongo:27017/userapp?authSource=admin',
+      'mongodb://user:password@mongo:27017/appdb?authSource=admin',
   },
 };
 
