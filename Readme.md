@@ -1,4 +1,4 @@
-# 🗄️4_DB-Lab | 🚀Node.js
+# 4_DB-Lab | 🚀Node.js
 
 ![Homepage Screenshot](screenshot/Screenshot.png)
 **Happy Learning — Made with ❤️ by Dev Jayanth**
