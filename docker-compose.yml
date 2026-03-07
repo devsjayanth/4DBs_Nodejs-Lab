@@ -1,0 +1,151 @@
+services:
+
+  # ── nginx — frontend + API proxy ──────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: 4db_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - 4db_net
+
+  # ── Node.js API ────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: 4db_api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      PORT: 3000
+      MYSQL_HOST:     mysql
+      MYSQL_PORT:     3306
+      MYSQL_USER:     userapp
+      MYSQL_PASSWORD: userapp_pass
+      MYSQL_DATABASE: userapp
+      PG_HOST:        postgres
+      PG_PORT:        5432
+      PG_USER:        userapp
+      PG_PASSWORD:    userapp_pass
+      PG_DATABASE:    userapp
+      REDIS_HOST:     redis
+      REDIS_PORT:     6379
+      REDIS_PASSWORD: userapp_pass
+      MONGO_URI:      mongodb://userapp:userapp_pass@mongo:27017/userapp?authSource=admin
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    networks:
+      - 4db_net
+
+  # ── MySQL 8 ───────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: 4db_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE:      userapp
+      MYSQL_USER:          userapp
+      MYSQL_PASSWORD:      userapp_pass
+    ports:
+      - "3307:3306"   # host:container — avoids conflict with local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - 4db_net
+
+  # ── PostgreSQL 16 ─────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: 4db_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     userapp
+      POSTGRES_PASSWORD: userapp_pass
+      POSTGRES_DB:       userapp
+    ports:
+      - "5433:5432"   # host:container — avoids conflict with local PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U userapp -d userapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - 4db_net
+
+  # ── Redis 7 ───────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: 4db_redis
+    restart: unless-stopped
+    command: redis-server --requirepass userapp_pass --appendonly yes
+    ports:
+      - "6380:6379"   # host:container — avoids conflict with local Redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "userapp_pass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - 4db_net
+
+  # ── MongoDB 7 ─────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: 4db_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: userapp
+      MONGO_INITDB_ROOT_PASSWORD: userapp_pass
+      MONGO_INITDB_DATABASE:      userapp
+    ports:
+      - "27018:27017"  # host:container — avoids conflict with local MongoDB
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok", "--username", "userapp", "--password", "userapp_pass", "--authenticationDatabase", "admin"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - 4db_net
+
+volumes:
+  mysql_data:
+  postgres_data:
+  redis_data:
+  mongo_data:
+
+networks:
+  4db_net:
+    driver: bridge
