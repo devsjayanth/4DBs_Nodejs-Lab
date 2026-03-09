@@ -254,10 +254,33 @@ function redisKey() { return `entry:${Date.now()}-${_seq++ % 10000}`; }
 // ══════════════════════════════════════════════════════════
 app.get('/api/status', (_req, res) => {
   res.json({
-    mysql:    { connected: state.mysql.connected,    error: state.mysql.error },
-    postgres: { connected: state.postgres.connected, error: state.postgres.error },
-    redis:    { connected: state.redis.connected,    error: state.redis.error },
-    mongo:    { connected: state.mongo.connected,    error: state.mongo.error },
+    mysql: {
+      connected: state.mysql.connected,
+      error:     state.mysql.error,
+      host:      CFG.mysql.host,
+      port:      CFG.mysql.port,
+      user:      CFG.mysql.user,
+      database:  CFG.mysql.database,
+    },
+    postgres: {
+      connected: state.postgres.connected,
+      error:     state.postgres.error,
+      host:      CFG.postgres.host,
+      port:      CFG.postgres.port,
+      user:      CFG.postgres.user,
+      database:  CFG.postgres.database,
+    },
+    redis: {
+      connected: state.redis.connected,
+      error:     state.redis.error,
+      host:      CFG.redis.socket.host,
+      port:      CFG.redis.socket.port,
+    },
+    mongo: {
+      connected: state.mongo.connected,
+      error:     state.mongo.error,
+      uri:       CFG.mongo.uri.replace(/:\/\/[^@]+@/, '://****:****@'), // mask credentials
+    },
   });
 });
 

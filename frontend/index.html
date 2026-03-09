@@ -326,6 +326,24 @@ body{
 
 .card-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .card-subtitle{font-family:'JetBrains Mono',monospace;font-size:.57rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* connection info row — host / user / db */
+.card-info{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  margin-top:7px;
+}
+.card-info-chip{
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  padding:3px 10px;border-radius:8px;
+  border:1px solid var(--border);background:hsla(220,20%,9%,.45);
+  color:var(--c);display:flex;align-items:center;gap:5px;
+  font-weight:700;
+  transition:color .3s,border-color .3s;
+}
+[data-theme="light"] .card-info-chip{background:hsla(220,28%,96%,.45)}
+.card-info-chip .chip-label{font-size:.55rem;text-transform:uppercase;letter-spacing:.06em;color:var(--c);font-weight:600;opacity:.7}
+.card-info-chip span:not(.chip-label){font-weight:700;color:var(--c)}
+.db-card.online .card-info-chip{color:var(--c)}
 .card-port{
   font-family:'JetBrains Mono',monospace;font-size:.57rem;
   padding:2px 7px;border-radius:6px;
@@ -679,6 +697,11 @@ body{
         <span class="card-subtitle">Relational · SQL</span>
         <span class="card-port">:3306</span>
       </div>
+      <div class="card-info" id="info-mysql">
+        <span class="card-info-chip"><span class="chip-label">host:</span><span id="info-mysql-host">—</span></span>
+        <span class="card-info-chip"><span class="chip-label">user:</span><span id="info-mysql-user">—</span></span>
+        <span class="card-info-chip"><span class="chip-label">db:</span><span id="info-mysql-db">—</span></span>
+      </div>
       <div class="status-badge" id="status-mysql">
         <span class="s-dot"></span><span class="s-label">Connecting…</span><span class="spinner"></span>
       </div>
@@ -707,6 +730,9 @@ body{
       <div class="card-meta">
         <span class="card-subtitle">Document · NoSQL</span>
         <span class="card-port">:27017</span>
+      </div>
+      <div class="card-info" id="info-mongo">
+        <span class="card-info-chip"><span class="chip-label">uri:</span><span id="info-mongo-host">—</span></span>
       </div>
       <div class="status-badge" id="status-mongo">
         <span class="s-dot"></span><span class="s-label">Connecting…</span><span class="spinner"></span>
@@ -737,6 +763,11 @@ body{
         <span class="card-subtitle">Relational · ACID</span>
         <span class="card-port">:5432</span>
       </div>
+      <div class="card-info" id="info-postgres">
+        <span class="card-info-chip"><span class="chip-label">host:</span><span id="info-postgres-host">—</span></span>
+        <span class="card-info-chip"><span class="chip-label">user:</span><span id="info-postgres-user">—</span></span>
+        <span class="card-info-chip"><span class="chip-label">db:</span><span id="info-postgres-db">—</span></span>
+      </div>
       <div class="status-badge" id="status-postgres">
         <span class="s-dot"></span><span class="s-label">Connecting…</span><span class="spinner"></span>
       </div>
@@ -765,6 +796,9 @@ body{
       <div class="card-meta">
         <span class="card-subtitle">In-Memory · KV</span>
         <span class="card-port">:6379</span>
+      </div>
+      <div class="card-info" id="info-redis">
+        <span class="card-info-chip"><span class="chip-label">host:</span><span id="info-redis-host">—</span></span>
       </div>
       <div class="status-badge" id="status-redis">
         <span class="s-dot"></span><span class="s-label">Connecting…</span><span class="spinner"></span>
@@ -887,6 +921,11 @@ function esc(s) {
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val ?? '—';
+}
+
 function addLog(db, msg, type = 'info') {
   const area = document.getElementById(`log-${db}`);
   if (!area) return;
@@ -921,6 +960,13 @@ async function pollStatus() {
     badge.className = `topbar-badge ${online === 4 ? 'all-on' : online === 0 ? 'all-off' : 'some-off'}`;
     txt.textContent = online === 4 ? '4/4 Online' : online === 0 ? 'All Offline' : `${online}/4 Online`;
     document.getElementById('last-poll').textContent = `Last check: ${ts()}`;
+
+    // populate connection info chips
+    const d = data;
+    if (d.mysql)    { setText('info-mysql-host',    d.mysql.host);    setText('info-mysql-user', d.mysql.user);    setText('info-mysql-db',   d.mysql.database); }
+    if (d.postgres) { setText('info-postgres-host', d.postgres.host); setText('info-postgres-user', d.postgres.user); setText('info-postgres-db', d.postgres.database); }
+    if (d.redis)    { setText('info-redis-host',    d.redis.host);    setText('info-redis-port', d.redis.port); }
+    if (d.mongo)    { setText('info-mongo-host',    d.mongo.uri); }
   } catch (e) {
     setApiBadge(false);
     console.warn('Poll error:', e.message);
