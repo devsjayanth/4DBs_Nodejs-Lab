@@ -3,12 +3,6 @@
 
 **Happy Learning — Made with ❤️ by Dev Jayanth**
 
-# 4_DB-Lab 🗄️
-
-> A Node.js application that connects to four databases simultaneously and exposes a browser UI to write, view, and delete entries across all of them.
-
-**Happy Learning — Made with ❤️ by Dev Jayanth**
-
 ---
 
 ## 🤔 What Is This?
