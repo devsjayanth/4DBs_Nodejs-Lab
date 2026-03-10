@@ -1,7 +1,8 @@
 # 🚀Node.js | 4_DB-Lab
-![Demo Video](demo/demoimg.png)
-
+![Demo Video](assets/demoimg.png)
 **Happy Learning — Made with ❤️ by Dev Jayanth**
+## 🏗️Architecture
+![Demo Video](assets/flow.png)
 
 ---
 
